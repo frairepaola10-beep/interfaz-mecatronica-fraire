@@ -1,0 +1,22 @@
+{
+  "success": true,
+  "transactionId": "CMD-002",
+  "device": "motor1",
+  "communication": {
+    "connected": true,
+    "latencyMs": 28
+  },
+  "state": {
+    "running": true,
+    "speed": 65,
+    "temperature": 55
+  },
+  "alarms": [
+    {
+      "code": "TEMP_HIGH",
+      "severity": "WARNING",
+      "message": "Temperatura elevada"
+    }
+  ],
+  "message": "Comando ejecutado correctamente"
+}

@@ -1,0 +1,53 @@
+name: Backend tests
+
+# Corre en cada push (a cualquier rama) y en cada Pull Request. Reemplaza
+# la autocalificación de GitHub Classroom (retirado en agosto 2026): cada
+# alumno ve directamente en su propio repositorio, en la pestaña
+# "Actions" y como check junto a cada commit, qué prácticas ya pasan.
+#
+# Tres jobs separados (no un solo "npm test") para que un TODO faltante
+# en una práctica no oculte que las demás ya están resueltas.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  contrato:
+    name: Contrato de respuesta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+        working-directory: backend
+      - run: node tests/contract.test.js
+        working-directory: backend
+
+  validacion:
+    name: Validación (Práctica 4)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+        working-directory: backend
+      - run: node tests/validation.test.js
+        working-directory: backend
+
+  alarmas:
+    name: Alarmas y fallas (Práctica 2/6)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+        working-directory: backend
+      - run: node tests/alarms.test.js
+        working-directory: backend

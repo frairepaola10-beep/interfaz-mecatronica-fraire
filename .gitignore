@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno
+.env
+.env.local
+
+# Editor / SO
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build de Arduino IDE / PlatformIO
+firmware/**/build/
+firmware/**/.pio/
+*.hex
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cobertura de tests
+coverage/

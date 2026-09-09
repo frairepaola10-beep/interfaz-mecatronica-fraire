@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "transactionId": "CMD-001",
+  "device": "motor1",
+  "communication": {
+    "connected": true,
+    "latencyMs": 25
+  },
+  "state": {
+    "running": true,
+    "speed": 50,
+    "temperature": 38
+  },
+  "alarms": [],
+  "message": "Comando ejecutado correctamente"
+}

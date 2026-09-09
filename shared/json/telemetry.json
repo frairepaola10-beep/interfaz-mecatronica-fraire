@@ -1,0 +1,15 @@
+{
+  "device": "motor1",
+  "timestamp": "2026-09-08T10:32:15Z",
+  "state": {
+    "running": true,
+    "speed": 65,
+    "temperature": 42
+  },
+  "raw": {
+    "potentiometerAdc": 2662,
+    "relay": true,
+    "startButton": "LIBRE",
+    "stopButton": "LIBRE"
+  }
+}

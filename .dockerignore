@@ -1,0 +1,13 @@
+# Se reinstalan dentro de la imagen (npm ci), no se copian del host.
+backend/node_modules
+
+# Control de versiones y archivos del entorno de desarrollo.
+.git
+.gitignore
+.vscode
+*.log
+npm-debug.log*
+
+# No hace falta el firmware ni la documentacion dentro de la imagen de
+# despliegue del backend/frontend.
+firmware

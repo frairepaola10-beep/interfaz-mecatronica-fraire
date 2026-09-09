@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "device": "motor1",
+  "communication": {
+    "connected": true,
+    "latencyMs": 27
+  },
+  "state": {
+    "running": true,
+    "speed": 65,
+    "temperature": 42
+  },
+  "alarms": []
+}

@@ -1,0 +1,20 @@
+{
+  "success": false,
+  "device": "motor1",
+  "communication": {
+    "connected": false,
+    "latencyMs": null
+  },
+  "state": {
+    "running": null,
+    "speed": null,
+    "temperature": null
+  },
+  "alarms": [
+    {
+      "code": "COMM_LOST",
+      "severity": "CRITICAL",
+      "message": "Comunicación perdida con el dispositivo"
+    }
+  ]
+}

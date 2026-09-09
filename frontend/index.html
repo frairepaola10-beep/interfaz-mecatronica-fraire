@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interfaz Mecatrónica</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="layout">
+
+    <!-- ============ MENÚ LATERAL ============ -->
+    <nav class="sidebar" aria-label="Navegación principal">
+      <div class="sidebar__brand">
+        <span class="sidebar__brand-icon">⚙</span>
+        <span class="sidebar__brand-text">MECATRÓNICA</span>
+      </div>
+      <ul class="sidebar__nav">
+        <li><a href="#" class="sidebar__link sidebar__link--active"><span class="sidebar__icon">▣</span>Dashboard</a></li>
+        <li><a href="#" class="sidebar__link"><span class="sidebar__icon">◎</span>Control</a></li>
+        <li><a href="#" class="sidebar__link"><span class="sidebar__icon">▲</span>Alarmas</a></li>
+        <li><a href="#" class="sidebar__link"><span class="sidebar__icon">⇄</span>Comunicación</a></li>
+        <li><a href="#" class="sidebar__link"><span class="sidebar__icon">⚙</span>Configuración</a></li>
+      </ul>
+      <div class="sidebar__footer">
+        Diseño de Interfaces<br />Mecatrónicas
+      </div>
+    </nav>
+
+    <div class="main">
+
+      <!-- ============ HEADER ============ -->
+      <header class="header">
+        <div class="header__title">
+          <h1>INTERFAZ MECATRÓNICA</h1>
+          <p>Sistema de Supervisión y Control</p>
+        </div>
+        <div class="header__status">
+          <div class="header__status-item">
+            <span class="label">Backend</span>
+            <span class="value" data-bind="backendStatusText">Conectado</span>
+          </div>
+          <div class="header__status-item">
+            <span class="label">ESP32</span>
+            <span class="dot dot--green" data-bind="esp32Dot"></span>
+            <span class="value" data-bind="esp32StatusText">Conectado</span>
+          </div>
+          <div class="header__status-item">
+            <span class="label">Latencia</span>
+            <span class="value" data-bind="latencyText">— ms</span>
+          </div>
+          <div class="header__mode" data-bind="modeBadge">Modo: SIMULACIÓN</div>
+        </div>
+      </header>
+
+      <!-- ============ BANNER DE ERROR GLOBAL (oculto por defecto) ============ -->
+      <div class="comm-banner comm-banner--hidden" data-bind="commBanner">
+        <span class="comm-banner__code">COMM_LOST</span>
+        <span class="comm-banner__text">No fue posible comunicarse con el dispositivo</span>
+      </div>
+
+      <main class="content">
+
+        <!-- ============ FRANJA DE FLUJO ============ -->
+        <section class="flow-strip" aria-label="Flujo de comunicación">
+          <div class="flow-strip__row">
+            <span class="flow-step" data-flow="usuario">USUARIO</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="frontend">FRONTEND</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="api">API</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="backend">BACKEND</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="esp32">ESP32</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="planta">SENSOR / ACTUADOR</span>
+          </div>
+          <div class="flow-strip__row flow-strip__row--return">
+            <span class="flow-step" data-flow="r-esp32">ESP32</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="r-backend">BACKEND</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="r-json">JSON</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="r-frontend">FRONTEND</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step" data-flow="r-ui">ACTUALIZACIÓN</span>
+          </div>
+          <p class="flow-strip__phase" data-bind="flowPhase">En reposo — esperando una acción del usuario</p>
+        </section>
+
+        <!-- ============ FILA PRINCIPAL: MOTOR + VARIABLES ============ -->
+        <div class="grid-main">
+
+          <!-- Panel de control del motor -->
+          <section class="card card--motor" aria-label="Motor Principal">
+            <header class="card__header">
+              <h2>Motor Principal — <span class="card__subtitle">MOTOR 01</span></h2>
+              <span class="badge" data-bind="motorStatusBadge">DETENIDO</span>
+            </header>
+
+            <div class="motor-visual">
+              <div class="motor-visual__ring" data-bind="motorRing">
+                <div class="motor-visual__blade"></div>
+              </div>
+              <div class="motor-visual__readout">
+                <span class="motor-visual__speed" data-bind="motorSpeedBig">0%</span>
+                <span class="motor-visual__label">velocidad</span>
+              </div>
+            </div>
+
+            <dl class="kv-row">
+              <div class="kv"><dt>Estado</dt><dd data-bind="motorStateText">DETENIDO</dd></div>
+              <div class="kv"><dt>Velocidad actual</dt><dd data-bind="motorSpeedText">0 %</dd></div>
+              <div class="kv"><dt>Temperatura</dt><dd data-bind="motorTempText">— °C</dd></div>
+              <div class="kv"><dt>Comunicación</dt><dd data-bind="motorCommText">OK</dd></div>
+            </dl>
+
+            <div class="motor-controls">
+              <button type="button" class="btn btn--start" data-action="start">ARRANCAR</button>
+              <button type="button" class="btn btn--stop" data-action="stop">PARAR</button>
+            </div>
+
+            <div class="speed-control">
+              <div class="speed-control__label-row">
+                <label for="speed-slider">Referencia de velocidad</label>
+                <span class="speed-control__value" data-bind="speedSliderValue">65 %</span>
+              </div>
+              <input type="range" id="speed-slider" min="0" max="100" value="65" data-bind="speedSlider" />
+              <div class="speed-control__scale"><span>0 %</span><span>100 %</span></div>
+              <button type="button" class="btn btn--send" data-action="send-speed">ENVIAR VELOCIDAD</button>
+            </div>
+
+            <p class="phase-indicator" data-bind="commandPhase" hidden></p>
+          </section>
+
+          <!-- Variables del proceso -->
+          <section class="card card--process" aria-label="Variables del proceso">
+            <header class="card__header">
+              <h2>Variables del proceso</h2>
+            </header>
+
+            <div class="process-row">
+              <span class="process-row__label">Velocidad</span>
+              <span class="process-row__value" data-bind="processSpeed">0 %</span>
+            </div>
+            <div class="process-row">
+              <span class="process-row__label">Temperatura</span>
+              <span class="process-row__value" data-bind="processTemp">— °C</span>
+            </div>
+
+            <div class="temp-gauge">
+              <div class="temp-gauge__track">
+                <div class="temp-gauge__fill" data-bind="tempGaugeFill"></div>
+                <div class="temp-gauge__marker" data-bind="tempGaugeMarker" style="left:50%"></div>
+              </div>
+              <div class="temp-gauge__zones">
+                <span class="zone zone--normal">Normal</span>
+                <span class="zone zone--warning">Warning</span>
+                <span class="zone zone--critical">Critical</span>
+              </div>
+              <div class="temp-gauge__scale"><span>0 °C</span><span>100 °C</span></div>
+            </div>
+
+            <div class="process-row">
+              <span class="process-row__label">Potenciómetro ADC</span>
+              <span class="process-row__value" data-bind="processAdc">0</span>
+            </div>
+            <div class="process-row">
+              <span class="process-row__label">Relevador</span>
+              <span class="process-row__value" data-bind="processRelay">DESACTIVADO</span>
+            </div>
+            <div class="process-row">
+              <span class="process-row__label">Pulsador START</span>
+              <span class="process-row__value" data-bind="processBtnStart">LIBRE</span>
+            </div>
+            <div class="process-row">
+              <span class="process-row__label">Pulsador STOP</span>
+              <span class="process-row__value" data-bind="processBtnStop">LIBRE</span>
+            </div>
+          </section>
+        </div>
+
+        <!-- ============ ALARMAS Y EVENTOS ============ -->
+        <section class="card card--alarms" aria-label="Alarmas y eventos">
+          <header class="card__header">
+            <h2>Alarmas y eventos</h2>
+          </header>
+
+          <div class="alarm-banner alarm-banner--ok" data-bind="alarmBanner">
+            <span class="dot dot--green"></span>
+            <span data-bind="alarmBannerText">Sin alarmas activas</span>
+          </div>
+
+          <ul class="event-history" data-bind="eventHistory">
+            <li class="event-history__item">
+              <span class="event-history__time">—</span>
+              <span class="event-history__text">Esperando eventos del sistema…</span>
+            </li>
+          </ul>
+        </section>
+
+        <!-- ============ PANELES JSON ============ -->
+        <section class="grid-json">
+          <div class="card card--json">
+            <header class="card__header">
+              <h2>JSON ENVIADO — Frontend → Backend</h2>
+              <span class="json-tag" data-bind="sentEndpoint">POST /api/device/command</span>
+            </header>
+            <p class="json-request-id" data-bind="sentRequestId">Solicitud #—</p>
+            <pre class="code-box" data-bind="sentJson">{}</pre>
+          </div>
+
+          <div class="card card--json">
+            <header class="card__header">
+              <h2>JSON RECIBIDO — Backend → Frontend</h2>
+            </header>
+            <p class="json-request-id" data-bind="receivedRequestId">Solicitud #—</p>
+            <pre class="code-box" data-bind="receivedJson">{}</pre>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

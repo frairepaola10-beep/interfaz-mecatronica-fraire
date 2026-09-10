@@ -1,5 +1,0 @@
-{
-  "device": "motor1",
-  "action": "SET_SPEED",
-  "value": 50
-}

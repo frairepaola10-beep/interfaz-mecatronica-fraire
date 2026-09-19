@@ -1,4 +1,4 @@
-
+```js
 /**
  * ui.js
  *
@@ -36,6 +36,7 @@ document.querySelectorAll('[data-flow]').forEach((el) => {
  */
 function highlightJson(value) {
   const json = JSON.stringify(value ?? {}, null, 2);
+
   const escaped = json
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -101,9 +102,13 @@ export function resetFlow() {
 }
 
 
-/** Resalta un paso del flujo. cls por defecto es "is-active" (azul); usar "is-done" para el verde final. */
+/**
+ * Resalta un paso del flujo. cls por defecto es "is-active" (azul);
+ * usar "is-done" para el verde final.
+ */
 export function activateFlowStep(name, cls = 'is-active') {
   const el = flowEls[name];
+
   if (!el) return;
 
   el.classList.remove('is-active', 'is-done', 'is-failed');
@@ -192,15 +197,64 @@ function renderCommBanner(state) {
    ========================================================================== */
 
 /**
- * TODO (Práctica 2):
+ * Actividad 2:
  *
- * Completar renderMotor(), renderProcess() y renderAlarms()
- * para las actividades 2 a 5.
+ * state.running === true  -> ENCENDIDO
+ * state.running === false -> DETENIDO
+ *
+ * También muestra velocidad y temperatura.
  */
-
-
 function renderMotor(state) {
-  // TODO (Práctica 2): Actividad 2
+
+  // Si no hay comunicación, mostramos el estado correspondiente.
+  if (state.connected === false) {
+    els.motorStatusBadge.textContent = 'SIN COMUNICACIÓN';
+    els.motorStatusBadge.className = 'badge';
+    els.motorStateText.textContent = 'SIN COMUNICACIÓN';
+    els.motorRing.classList.remove('is-running');
+
+    els.motorSpeedText.textContent = '—';
+    els.motorTempText.textContent = '—';
+
+    return;
+  }
+
+  // Motor encendido
+  if (state.running === true) {
+    els.motorStatusBadge.textContent = 'ENCENDIDO';
+    els.motorStatusBadge.className = 'badge badge--running';
+
+    els.motorStateText.textContent = 'ENCENDIDO';
+
+    els.motorRing.classList.add('is-running');
+  }
+
+  // Motor detenido
+  else if (state.running === false) {
+    els.motorStatusBadge.textContent = 'DETENIDO';
+    els.motorStatusBadge.className = 'badge badge--stopped';
+
+    els.motorStateText.textContent = 'DETENIDO';
+
+    els.motorRing.classList.remove('is-running');
+  }
+
+  // Estado desconocido/null
+  else {
+    els.motorStatusBadge.textContent = 'DESCONOCIDO';
+    els.motorStatusBadge.className = 'badge';
+
+    els.motorStateText.textContent = 'DESCONOCIDO';
+
+    els.motorRing.classList.remove('is-running');
+  }
+
+  // Mostrar velocidad y temperatura
+  els.motorSpeedText.textContent =
+    state.speed != null ? state.speed : '—';
+
+  els.motorTempText.textContent =
+    state.temperature != null ? state.temperature : '—';
 }
 
 
@@ -251,3 +305,4 @@ function escapeHtml(text) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
+```

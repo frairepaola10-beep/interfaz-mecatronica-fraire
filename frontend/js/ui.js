@@ -221,8 +221,48 @@ function renderCommBanner(state) {
  * ============================================================
  */
 function renderMotor(state) {
-  // TODO (Práctica 2): pinta el badge/anillo/textos del motor según
-  // state.running y state.connected (ver los casos descritos arriba).
+  if (state.connected === false) {
+    els.motorStatusBadge.textContent = 'SIN COMUNICACIÓN';
+    els.motorStatusBadge.className = 'badge badge--unknown';
+
+    els.motorRing.classList.remove('is-running');
+    els.motorRing.classList.add('is-unknown');
+
+    els.motorSpeedBig.textContent = '—';
+    els.motorStateText.textContent = 'SIN COMUNICACIÓN';
+    els.motorSpeedText.textContent = '— %';
+    els.motorTempText.textContent = '— °C';
+    els.motorCommText.textContent = 'Sin comunicación';
+    return;
+  }
+
+  els.motorRing.classList.remove('is-unknown');
+
+  if (state.running === true) {
+    els.motorStatusBadge.textContent = 'ENCENDIDO';
+    els.motorStatusBadge.className = 'badge badge--running';
+
+    els.motorRing.classList.add('is-running');
+    els.motorStateText.textContent = 'ENCENDIDO';
+  } else if (state.running === false) {
+    els.motorStatusBadge.textContent = 'DETENIDO';
+    els.motorStatusBadge.className = 'badge badge--stopped';
+
+    els.motorRing.classList.remove('is-running');
+    els.motorStateText.textContent = 'DETENIDO';
+  } else {
+    els.motorStatusBadge.textContent = 'DESCONOCIDO';
+    els.motorStatusBadge.className = 'badge badge--unknown';
+
+    els.motorRing.classList.remove('is-running');
+    els.motorRing.classList.add('is-unknown');
+    els.motorStateText.textContent = 'DESCONOCIDO';
+  }
+
+  els.motorSpeedBig.textContent = `${state.speed ?? 0}`;
+  els.motorSpeedText.textContent = `${state.speed ?? 0} %`;
+  els.motorTempText.textContent = `${state.temperature ?? '—'} °C`;
+  els.motorCommText.textContent = 'Comunicación OK';
 }
 
 function renderProcess(state) {

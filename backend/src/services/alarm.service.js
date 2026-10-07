@@ -22,45 +22,54 @@ const config = require('../config');
 const history = [];
 
 function pushEvent(message) {
-  history.unshift({ timestamp: new Date().toISOString(), message });
-  if (history.length > 50) history.length = 50;
+  history.unshift({
+    timestamp: new Date().toISOString(),
+    message
+  });
+
+  if (history.length > 50) {
+    history.length = 50;
+  }
 }
 
 /**
  * Evalúa la temperatura contra los umbrales configurados.
+ *
  * @param {number|null} temperature
  * @returns {Array<{code: string, severity: string, message: string}>}
  *
- * ============================================================
- * TODO (Práctica 2 / Práctica 6 — exercises/practica-2-frontend-estados/
- * y exercises/practica-6-fallas-diagnostico/):
- * ============================================================
- * Completa esta función para que devuelva:
+ * Devuelve:
  *
- *   - []                                    si temperature es null/undefined
- *                                            (no se puede evaluar lo que no se conoce)
- *   - [{ code: 'TEMP_CRITICAL', severity: 'CRITICAL', ... }]
- *                                            si temperature >= config.TEMP_CRITICAL_THRESHOLD
- *   - [{ code: 'TEMP_HIGH', severity: 'WARNING', ... }]
- *                                            si temperature >= config.TEMP_WARNING_THRESHOLD
- *                                            (pero por debajo del umbral crítico)
- *   - []                                    en cualquier otro caso (temperatura normal)
+ *   - [] si temperature es null/undefined
+ *   - TEMP_CRITICAL / CRITICAL si supera o iguala el umbral crítico
+ *   - TEMP_HIGH / WARNING si supera o iguala el umbral de warning
+ *   - [] en cualquier otro caso
  *
- * IMPORTANTE: evalúa primero el umbral CRÍTICO. Si evalúas primero el de
- * WARNING, una temperatura de 75°C (crítica) también cumpliría ">= 50°C"
- * y terminarías reportando la alarma equivocada.
- *
- * El campo "message" es libre, pero debe ser legible para mostrarse en
- * el panel de alarmas del frontend, por ejemplo:
- *   `Temperatura elevada (${temperature} °C)`
- *
- * Cómo saber si ya quedó bien: corre `npm test` — alarms.test.js fuerza
- * los escenarios TEMP_HIGH y TEMP_CRITICAL (ver
- * POST /api/simulation/scenario) y comprueba exactamente esto.
- * ============================================================
+ * IMPORTANTE:
+ * Primero se evalúa el umbral CRÍTICO para evitar que una temperatura
+ * crítica sea reportada incorrectamente como WARNING.
  */
 function evaluateTemperature(temperature) {
-  // TODO (Práctica 2/6): reemplaza esta línea por la lógica descrita arriba.
+  if (temperature == null) {
+    return [];
+  }
+
+  if (temperature >= config.TEMP_CRITICAL_THRESHOLD) {
+    return [{
+      code: 'TEMP_CRITICAL',
+      severity: 'CRITICAL',
+      message: `Temperatura crítica (${temperature} °C)`
+    }];
+  }
+
+  if (temperature >= config.TEMP_WARNING_THRESHOLD) {
+    return [{
+      code: 'TEMP_HIGH',
+      severity: 'WARNING',
+      message: `Temperatura elevada (${temperature} °C)`
+    }];
+  }
+
   return [];
 }
 
@@ -68,7 +77,7 @@ function commLostAlarm() {
   return {
     code: 'COMM_LOST',
     severity: 'CRITICAL',
-    message: 'Comunicación perdida con el dispositivo',
+    message: 'Comunicación perdida con el dispositivo'
   };
 }
 
@@ -76,7 +85,7 @@ function invalidCommandAlarm() {
   return {
     code: 'INVALID_COMMAND',
     severity: 'WARNING',
-    message: 'Comando inválido recibido',
+    message: 'Comando inválido recibido'
   };
 }
 
@@ -84,7 +93,7 @@ function deviceFaultAlarm(detail) {
   return {
     code: 'DEVICE_FAULT',
     severity: 'CRITICAL',
-    message: detail || 'Falla del dispositivo',
+    message: detail || 'Falla del dispositivo'
   };
 }
 
@@ -98,5 +107,5 @@ module.exports = {
   invalidCommandAlarm,
   deviceFaultAlarm,
   pushEvent,
-  getHistory,
+  getHistory
 };

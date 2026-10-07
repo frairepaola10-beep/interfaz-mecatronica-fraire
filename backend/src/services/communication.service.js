@@ -12,8 +12,7 @@ const simulator = require('./simulator.service');
  * llama a sendCommand(command) y recibe siempre la misma forma de resultado.
  *
  * Esto es justo lo que permite cambiar de Modo 1 (Simulación) a Modo 2
- * (Hardware real) sin tocar ni el frontend ni las rutas del backend — ver
- * README del proyecto, sección 25.
+ * (Hardware real) sin tocar ni el frontend ni las rutas del backend.
  */
 
 /**
@@ -26,53 +25,58 @@ const simulator = require('./simulator.service');
  * }>}
  */
 async function sendCommand(command) {
-  // config.MODE decide en tiempo de ejecución a quién le hablamos. Nótese
-  // que esta es la única línea de todo el backend que distingue los dos
-  // modos de trabajo.
+  // config.MODE decide en tiempo de ejecución a quién le hablamos.
   return config.MODE === 'HARDWARE'
     ? sendToHardware(command)
     : sendToSimulation(command);
 }
 
 /**
- * Camino usado en Modo SIMULACIÓN: en vez de HTTP, "hablamos" directamente
- * con simulator.service.js, pero respetando exactamente la misma forma de
- * respuesta (incluyendo latencia y posibles fallas) que tendríamos con un
- * ESP32 real, para que el resto del backend no note la diferencia.
+ * Camino usado en Modo SIMULACIÓN.
+ *
+ * En vez de hablar con un ESP32 real, hablamos directamente con
+ * simulator.service.js, pero mantenemos la misma forma de respuesta
+ * que tendría un ESP32 real.
  */
 async function sendToSimulation(command) {
   const scenario = simulator.getScenario();
 
   // ============================================================
-  // TODO (Práctica 6 — exercises/practica-6-fallas-diagnostico/):
+  // COMM_LOST
   // ============================================================
-  // Completa aquí la detección de dos fallas, ANTES de que el comando
-  // llegue a ejecutarse sobre el motor virtual:
-  //
-  //   1. Si scenario === 'COMM_LOST': el "cable se cortó". No hay forma
-  //      de saber el estado real del dispositivo. Debes devolver:
-  //        { connected: false, latencyMs: null, state: null, deviceFault: null }
-  //
-  //   2. Si scenario === 'TIMEOUT': el ESP32 "se queda pensando" más
-  //      tiempo del que el backend está dispuesto a esperar. Simula esa
-  //      espera real con `await delay(config.COMMAND_TIMEOUT_MS + 500)`
-  //      (ya existe la función delay() al final de este archivo) y
-  //      DESPUÉS devuelve el mismo resultado que en el caso anterior.
-  //
-  // ¿Por qué esperar de verdad en vez de fallar inmediato? Para que se
-  // sienta como un timeout real: si el backend estuviera hablando con un
-  // ESP32 de verdad, tardaría en darse cuenta de que no hay respuesta.
-  //
-  // Cómo saber si ya quedó bien: fuerza el escenario con
-  //   curl -X POST http://localhost:3000/api/simulation/scenario \
-  //        -H "Content-Type: application/json" -d '{"scenario":"COMM_LOST"}'
-  // y confirma que GET /api/device/status responde con
-  // { "success": false, "alarms": [{ "code": "COMM_LOST", ... }] }.
-  // alarms.test.js también cubre el caso COMM_LOST.
-  // ============================================================
+  // Se perdió la comunicación con el dispositivo.
+  // No podemos conocer su estado actual, por lo tanto devolvemos
+  // connected:false y state:null.
+  if (scenario === 'COMM_LOST') {
+    return {
+      connected: false,
+      latencyMs: null,
+      state: null,
+      deviceFault: null,
+    };
+  }
 
-  // Camino normal: aplicamos el comando al motor virtual y le pedimos que
-  // avance un paso para que la respuesta ya refleje el efecto del comando.
+  // ============================================================
+  // TIMEOUT
+  // ============================================================
+  // Simulamos que el ESP32 tarda más de lo permitido en responder.
+  if (scenario === 'TIMEOUT') {
+    await delay(config.COMMAND_TIMEOUT_MS + 500);
+
+    return {
+      connected: false,
+      latencyMs: null,
+      state: null,
+      deviceFault: null,
+    };
+  }
+
+  // ============================================================
+  // FUNCIONAMIENTO NORMAL
+  // ============================================================
+  // Aplicamos el comando al motor virtual y avanzamos un paso
+  // de la simulación para que la respuesta refleje el efecto
+  // del comando recibido.
   applyCommand(command);
   simulator.tick();
 
@@ -80,93 +84,132 @@ async function sendToSimulation(command) {
 
   return {
     connected: true,
-    // Latencia simulada realista (15-35 ms), solo para que el panel de
-    // comunicación del frontend tenga un número que mostrar.
-    latencyMs: Math.round(15 + Math.random() * 20),
+
+    // Latencia simulada entre 15 y 35 ms.
+    latencyMs:
+      Math.round(
+        15 + Math.random() * 20
+      ),
+
     state: {
       running: state.running,
       speed: state.speed,
-      temperature: state.temperature, // puede venir null si scenario = SENSOR_FAULT
-      // Campos adicionales (no forman parte del mínimo documentado en
-      // protocolo.md, pero sí de telemetry.json): alimentan el panel
-      // "Variables del proceso" del frontend con lecturas crudas.
+      temperature: state.temperature,
       potentiometerAdc: state.potentiometerAdc,
       relay: state.relay,
       startButton: state.startButton,
       stopButton: state.stopButton,
     },
-    deviceFault: scenario === 'DEVICE_FAULT' ? 'Falla simulada del dispositivo' : null,
+
+    deviceFault:
+      scenario === 'DEVICE_FAULT'
+        ? 'Falla simulada del dispositivo'
+        : null,
   };
 }
 
-/** Traduce un comando JSON en una llamada al motor virtual. */
+/**
+ * Traduce un comando JSON en una llamada al motor virtual.
+ */
 function applyCommand(command) {
   switch (command.action) {
     case 'START':
       simulator.start();
       break;
+
     case 'STOP':
       simulator.stop();
       break;
+
     case 'SET_SPEED':
       simulator.setSpeed(command.value);
       break;
+
     case 'GET_STATUS':
       // No modifica nada: solo se quiere leer el estado actual.
       break;
+
     default:
-      // validateCommand.js ya debería haber rechazado esto antes de llegar
-      // aquí; este default es solo una red de seguridad.
+      // validateCommand.js ya debería haber rechazado esto antes
+      // de llegar aquí; este default es solo una red de seguridad.
       break;
   }
 }
 
 /**
- * Camino usado en Modo HARDWARE (Práctica 5): el backend deja de simular y
- * le hace POST de verdad al ESP32. AbortController + setTimeout es la forma
- * estándar de imponer un timeout a un fetch en Node.
+ * Camino usado en Modo HARDWARE.
+ *
+ * El backend deja de simular y le hace POST de verdad al ESP32.
+ * AbortController + setTimeout impone un timeout al fetch.
  */
 async function sendToHardware(command) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), config.COMMAND_TIMEOUT_MS);
+
+  const timer = setTimeout(
+    () => controller.abort(),
+    config.COMMAND_TIMEOUT_MS
+  );
+
   const startedAt = Date.now();
 
   try {
-    const res = await fetch(`${config.ESP32_URL}/command`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(command),
-      signal: controller.signal,
-    });
+    const res = await fetch(
+      `${config.ESP32_URL}/command`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(command),
+        signal: controller.signal,
+      }
+    );
 
     if (!res.ok) {
       return {
         connected: false,
         latencyMs: null,
         state: null,
-        deviceFault: 'Respuesta HTTP inválida del ESP32',
+        deviceFault:
+          'Respuesta HTTP inválida del ESP32',
       };
     }
 
     const data = await res.json();
+
     return {
       connected: true,
-      latencyMs: Date.now() - startedAt,
+      latencyMs:
+        Date.now() - startedAt,
       state: data.state,
       deviceFault: null,
     };
+
   } catch (err) {
-    // Cubre tanto el abort por timeout como cualquier error de red
-    // (ESP32 apagado, IP incorrecta, Wi-Fi caído, etc.). Desde el punto de
-    // vista del backend, todas esas fallas se reportan igual: sin conexión.
-    return { connected: false, latencyMs: null, state: null, deviceFault: null };
+    // Cubre tanto el abort por timeout como cualquier error
+    // de red. Desde el punto de vista del backend, todas esas
+    // fallas se reportan como sin conexión.
+    return {
+      connected: false,
+      latencyMs: null,
+      state: null,
+      deviceFault: null,
+    };
+
   } finally {
     clearTimeout(timer);
   }
 }
 
+/**
+ * Espera una cantidad de milisegundos.
+ */
 function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(
+    (resolve) => setTimeout(resolve, ms)
+  );
 }
 
-module.exports = { sendCommand };
+module.exports = {
+  sendCommand,
+};

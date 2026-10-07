@@ -1,0 +1,44 @@
+
+
+La Actividad 2 ejercicio 1
+
+¿Por qué renderMotor recibe el objeto completo state y no solo running?
+Porque renderMotor() necesita varios datos del estado para actualizar el panel del motor: connected, running, speed y temperature.
+
+¿Qué otro archivo del frontend decide cuándo se llama renderMotor?
+app.js, porque ahí se suscribe ui.applyState mediante state.subscribe(ui.applyState). Cada vez que cambia el estado, se ejecuta applyState() y dentro de esa función se llama renderMotor(state).
+
+Ejercicio 2
+*1. ¿Por qué renderMotor() recibe el objeto state completo en vez de recibir directamente state.running como parámetro?*
+Porque renderMotor() necesita más información además de saber si el motor está encendido o detenido. También utiliza datos como la velocidad, la temperatura y el estado de la comunicación. Por eso recibe todo el objeto state y puede actualizar toda la información del motor.
+
+*2. ¿Qué otro archivo del frontend decide cuándo se llama a renderMotor()?*
+El archivo app.js decide cuándo se actualiza el estado. Este utiliza ui.applyState, y dentro de applyState() se llama a renderMotor(state). Así, app.js decide cuándo actualizar y ui.js se encarga de mostrar la información en la interfaz.
+
+Ejercicio 3 
+1. ¿Por qué no conviene dejar los valores anteriores cuando se pierde la comunicación?
+Porque esos valores ya no representan el estado actual del dispositivo. Si se pierde la comunicación y dejamos los últimos valores, podríamos pensar que el motor sigue funcionando con esos datos cuando en realidad no sabemos cuál es su estado.
+Por eso, cuando se pierde la comunicación, se muestran valores como DESCONOCIDO, SIN COMUNICACIÓN y — en los datos que ya no se pueden confirmar.
+
+2. state.connected puede ser null o false. ¿El código debería tratarlos igual?
+No necesariamente. null significa que todavía no se conoce o no se ha establecido el estado de comunicación, mientras que false significa que la comunicación está confirmada como perdida.
+
+Ejercicio 4
+### 1. ¿Por qué evaluateTemperature() debe evaluar el umbral CRÍTICO antes que el de WARNING? ¿Qué pasaría si lo hicieras al revés con una temperatura de 75 °C?
+
+Debe evaluar primero el umbral *CRÍTICO* porque una temperatura crítica también supera el umbral de WARNING. En este caso, el límite de WARNING es 50 °C y el de CRÍTICO es 70 °C.
+Si se evaluara primero WARNING, una temperatura de *75 °C* cumpliría primero la condición de WARNING y el sistema la marcaría incorrectamente como TEMP_HIGH con severidad WARNING, cuando realmente debería ser TEMP_CRITICAL con severidad CRITICAL.
+Por eso primero se revisa la condición más grave y después la de WARNING.
+
+### 2. evaluateTemperature() vive en el backend, no en el frontend. ¿Por qué es importante que la decisión de "esto es una alarma" se tome ahí y no en ui.js?
+Es importante porque el *backend es el encargado de analizar el estado real del sistema y decidir si existe una alarma*. De esta manera, las reglas de seguridad y los umbrales están centralizados en un solo lugar.
+El frontend, específicamente ui.js, solamente debe encargarse de *mostrar la información* que recibe del backend. Así se evita que diferentes partes de la interfaz tengan reglas distintas para decidir cuándo existe una alarma.
+
+Ejercicio 5
+1. ¿Qué otras acciones debería generar una alarma CRITICAL que una WARNING no?
+
+Una alarma CRITICAL debería generar acciones más fuertes que una WARNING. Por ejemplo, activar un buzzer o alarma sonora, detener automáticamente el motor o el proceso y solicitar que el operador revise la maquinaria antes de continuar. Una WARNING puede mostrarse principalmente como una advertencia visual para informar al operador.
+
+ 2. ¿Cómo decidiste qué alarma mostrar si hay más de una activa?
+
+Decidí darle prioridad a la alarma CRITICAL sobre la WARNING. En renderAlarms() primero se busca si existe una alarma con severity === 'CRITICAL'. Si existe, se muestra el banner crítico. Solo si no existe una alarma crítica se busca una alarma WARNING. De esta manera, una condición crítica siempre tiene prioridad visual sobre una advertencia.
